@@ -17,4 +17,10 @@ while connected:
     cli_sock.sendall(clientMessage.encode("utf-8"))
     if clientMessage == "EXIT":
         connected = False
+        cli_sock.sendall(clientMessage.encode("utf-8"))
         cli_sock.close()
+    else:
+        response = cli_sock.recv(1024)
+        print("Server Response: " + " " + response.decode("utf-8"))
+        if response == "EXIT":
+            connected = False
