@@ -24,3 +24,4 @@ while connected:
         print("Server Response: " + " " + response.decode("utf-8"))
         if response == "EXIT":
             connected = False
+            print("The server terminanted this connection")
