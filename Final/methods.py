@@ -46,7 +46,6 @@ def rec_file(socket,filename):
     print(size,len(data))
 
     try:
-        filename = "new"
         with open(filename, 'xb') as f:
             f.write(data)
     except Exception as e:
