@@ -8,11 +8,12 @@ cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # The server's address is a tuple, comprising the server's IP address or hostname, and port number
 
-srv_addr = (sys.argv[1], int(sys.argv[2]))
-
-# Convert to string
-srv_addr_str = str(srv_addr)
-
+try:
+    srv_addr = (sys.argv[1], int(sys.argv[2]))
+    srv_addr_str = str(srv_addr)
+except:
+    print("Invalid command. Shutting down client...")
+    exit(1)
 
 try:
     print("Connecting to " + srv_addr_str + "... ")
@@ -22,9 +23,9 @@ try:
 
     print("Connected.")
 except Exception as e:
-    # Print the exception message
+
     print(e)
-    print('connect client broke') #debug
+    print("Failed to connect. Shutting down client...")
     # Exit with a non-zero value, to indicate an error condition
     exit(1)
 
