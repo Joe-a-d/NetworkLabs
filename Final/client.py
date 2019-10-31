@@ -24,7 +24,7 @@ try:
 except Exception as e:
     # Print the exception message
     print(e)
-    print('connect client broke') #debug
+    print("The client failed to connect") #debug
     # Exit with a non-zero value, to indicate an error condition
     exit(1)
 
