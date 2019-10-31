@@ -4,13 +4,6 @@ from os import path
 import socket
 ### add print time for each print
 
-### PROTOCOL
-###### 1 for sending
-###### 2 for receiving
-
-## First forget the size, test establishing a conmection of a known file size, read send, and close socket form client.
-# Write to file with different name in server side, close connection. Report
-
 
 def send_file(socket,file):
     try:
@@ -19,12 +12,12 @@ def send_file(socket,file):
             data = f.read()
     except Exception as e:
         print(e)
-        print(file + " not found")
+        print(file.decode() + " not found. Shutting down client")
+        socket.close()
+        return 0
 
     try:
         socket.sendall(str.encode(str(size)+"%%") + data )
-        print("SENT:: ", end="")
-        print(str.encode(str(size)+"%%") + data)
         return 0
     except Exception as e:
         print(e)
@@ -34,11 +27,14 @@ def send_file(socket,file):
 
 
 def rec_file(socket,filename):
-    data = socket.recv(100).split(b"%%")
-    print(data)
-    size = data[0].decode()
+    try:
+        data = socket.recv(100).split(b"%%")
+        size = data[0].decode()
+        recd = data[1]
+    except:
+        print("File not found -> " + filename)
+        return 1
     chunks = []
-    recd = data[1]
     chunks.append(recd)
     recd = len(recd)
     while recd < int(size):
@@ -47,16 +43,20 @@ def rec_file(socket,filename):
         chunks.append(chunk)
     data = b"".join(chunks)
 
-    print(data)
     print(size,len(data))
 
     try:
+        filename = "new"
         with open(filename, 'xb') as f:
             f.write(data)
     except Exception as e:
         print(e)
 
-    return (size, data)
+    if (size == len(data)):
+        return 0
+    else:
+        print(filename + " was corrupted during transfer")
+        return 1
 
 
 def send_dirs():
