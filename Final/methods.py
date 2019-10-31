@@ -4,40 +4,59 @@ from os import path
 import socket
 ### add print time for each print
 
-def send_file(file,socket):
+### PROTOCOL
+###### 1 for sending
+###### 2 for receiving
+
+## First forget the size, test establishing a conmection of a known file size, read send, and close socket form client.
+# Write to file with different name in server side, close connection. Report
+
+
+def send_file(socket,file):
     try:
         size = path.getsize(file)
         with open(file, 'rb') as f:
             data = f.read()
     except Exception as e:
         print(e)
-        print(file + " is not in your current working directory")
+        print(file + " not found")
 
     try:
-        print('in sned')
-        socket.sendall(str.encode(str(size)+":")) # first, send packet with size of file to check against corruption
-        socket.sendall(data)
-        print(data)
+        socket.sendall(str.encode(str(size)+"%%") + data )
+        print("SENT:: ", end="")
+        print(str.encode(str(size)+"%%") + data)
         return 0
     except Exception as e:
-        print(e);
+        print(e)
+    print(data)
+    return 1
 
 
 
-def rec_file(file,socket):
-    while ":" not in socket.recv():
-        size = socket.recv()
-    recd = 0
+def rec_file(socket,filename):
+    data = socket.recv(100).split(b"%%")
+    print(data)
+    size = data[0].decode()
     chunks = []
-    while recd < size:
-        chunk = self.sock.recv(4096)
-        if chunk == b'':
-            raise RuntimeError("socket connection broken")
+    recd = data[1]
+    chunks.append(recd)
+    recd = len(recd)
+    while recd < int(size):
+        chunk = socket.recv(4096)
         recd += len(chunk)
-    with open(file , 'xb') as f:
-        f.write(b''.join(chunks))
+        chunks.append(chunk)
+    data = b"".join(chunks)
 
-    return 0
+    print(data)
+    print(size,len(data))
+
+    try:
+        with open(filename, 'xb') as f:
+            f.write(data)
+    except Exception as e:
+        print(e)
+
+    return (size, data)
 
 
 def send_dirs():

@@ -2,10 +2,12 @@ import socket
 import sys
 from methods import *
 
+
 # Create the socket with which we will connect to the server
 cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # The server's address is a tuple, comprising the server's IP address or hostname, and port number
+
 srv_addr = (sys.argv[1], int(sys.argv[2]))
 
 # Convert to string
@@ -13,44 +15,46 @@ srv_addr_str = str(srv_addr)
 
 
 try:
-	print("Connecting to " + srv_addr_str + "... ")
+    print("Connecting to " + srv_addr_str + "... ")
 
 
-	cli_sock.connect(srv_addr)
+    cli_sock.connect(srv_addr)
 
-	print("Connected.")
+    print("Connected.")
 except Exception as e:
-	# Print the exception message
-	print(e)
-	# Exit with a non-zero value, to indicate an error condition
-	exit(1)
+    # Print the exception message
+    print(e)
+    print('connect client broke') #debug
+    # Exit with a non-zero value, to indicate an error condition
+    exit(1)
 
 
+### CLI arguments parsing
 try:
-	# Loop until either the server closes the connection or the user requests termination
-	while True:
+    filename = sys.argv[4]
+    fileRequest = True
+except:
+    fileRequest = False
+try:
+    request = sys.argv[3].lower()
+except:
+    print("Request method not provided... Shutting down ")
+    cli_sock.close()
 
-		try: ## sockets still missing as arguments
-            if (sys.argv[3].lower() == "put"):
-                send_file(sys.argv[4])
-            elif (sys.argv[3]).lower() == "get"):
-                rec_file(sys.argv[4])
-            else :
-                rec_dirs()
-        except Exception as e:
-            print(e)
-            exit(1)
+if fileRequest:
+    if (request == "put"):
+        cli_sock.send(b'1%#' + bytes(filename, 'utf8'))
+        put = send_file(cli_sock,filename)
+    elif (request == "get"):
+        cli_sock.send(b'2%#'+ bytes(filename, 'utf8'))
+        get = rec_file(cli_sock, filename)
+elif (request == "list") :
+    list = rec_dirs()
+else :
+    print("Invalid Input")
 
 
-		# Then, read data from server and print on screen
-		bytes_read = socket_to_screen(cli_sock, srv_addr_str)
-		if bytes_read == 0:
-			print("Server closed connection.")
-			break
 
-finally:
-
-	cli_sock.close()
 
 # Exit with a zero value, to indicate success
 exit(0)
