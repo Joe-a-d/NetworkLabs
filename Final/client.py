@@ -12,20 +12,20 @@ try:
     srv_addr = (sys.argv[1], int(sys.argv[2]))
     srv_addr_str = str(srv_addr)
 except:
-    print("Invalid command. Shutting down client...")
+    print(time(),"Invalid command. Shutting down client...",end="")
     exit(1)
 
 try:
-    print("Connecting to " + srv_addr_str + "... ")
+    print()
+    print(time(),"Connecting to " + srv_addr_str + "... ")
 
 
     cli_sock.connect(srv_addr)
 
-    print("Connected.")
+    print(time(),"Connected.")
 except Exception as e:
 
-    print(e)
-    print("Failed to connect. Shutting down client...")
+    print(time(),"Exception: ", e , ";" , "  Failed to connect. ",end="")
     # Exit with a non-zero value, to indicate an error condition
     exit(1)
 
@@ -39,7 +39,7 @@ except:
 try:
     request = sys.argv[3].lower()
 except:
-    print("Request method not provided... Shutting down ")
+    print(time(),"Request method not provided... Shutting down ")
     cli_sock.close()
 
 if fileRequest:
@@ -50,9 +50,11 @@ if fileRequest:
         cli_sock.send(b'2%#'+ bytes(filename, 'utf8'))
         get = rec_file(cli_sock, filename)
 elif (request == "list") :
-    list = rec_dirs()
+    cli_sock.send(b'3%#')
+    list = rec_dirs(cli_sock)
 else :
-    print("Invalid Input")
+    print()
+    print(time(),"Invalid Input")
 
 
 

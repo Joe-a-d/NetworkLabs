@@ -2,7 +2,7 @@ import sys
 import os
 from os import path
 import socket
-### add print time for each print
+from datetime import datetime
 
 
 def send_file(socket,file):
@@ -11,28 +11,31 @@ def send_file(socket,file):
         with open(file, 'rb') as f:
             data = f.read()
     except Exception as e:
-        print(e)
-        print(file.decode() + " not found. Shutting down client")
+        print(time(),"Exception: ", e  , end="")
         socket.close()
         return 0
 
     try:
-        socket.sendall(str.encode(str(size)+"%%") + data )
+        socket.sendall(b'##start##'+str.encode(str(size)+"%%size%%") + data )
         return 0
     except Exception as e:
-        print(e)
-    print(data)
+        print(time(),e,end="")
     return 1
 
 
 
 def rec_file(socket,filename):
+    data = socket.recv(100).split(b'##start##')
+    if data[0] == b'' and len(data) > 1:
+        recd = data[1]
+    elif len(data) == 1:
+        recd = data[0]
     try:
-        data = socket.recv(100).split(b"%%")
+        data = recd.split(b"%%size%%")
         size = data[0].decode()
         recd = data[1]
-    except:
-        print("File not found -> " + filename)
+    except Exception as e:
+        print(time(),"  File not found",end="")
         return 1
     chunks = []
     chunks.append(recd)
@@ -43,26 +46,69 @@ def rec_file(socket,filename):
         chunks.append(chunk)
     data = b"".join(chunks)
 
-    print(size,len(data))
-
     try:
         with open(filename, 'xb') as f:
             f.write(data)
     except Exception as e:
-        print(e)
+        print(time(),e,end="")
+        return 1
 
-    if (size == len(data)):
+    if (int(size) == len(data)):
         return 0
     else:
-        print(filename + " was corrupted during transfer")
+        print(size)
+        print()
+        print(time(),"the file was corrupted during transfer",end="")
         return 1
 
 
-def send_dirs():
-    return
+def send_dirs(socket):
+    try:
+        dirs = os.listdir()
+        size = str(len(dirs)).encode()
+        data =""
+        for dir in dirs:
+            data+=dir+","
+        data = data[:-1] #removes empty byte string
+        socket.sendall(size + b'%%' + data.encode())
+    except:
+        print(time(),e,end="")
 
-def rec_dirs():
-    return
+    return 0
+
+def rec_dirs(socket):
+    data = socket.recv(1094)
+    data = data.split(b'%%')
+    size = int(data[0].decode())
+    dirs =[]
+    dirs = data[1].split(b',')
+    while len(dirs) < size: # loop handles interrupted stream
+        data = socket.recv(1094)
+        data = data.split(b',')
+        data = [dir for dir in data if dir not in dirs ]
+        dirs.extend(data)
+
+    if len(dirs) != size:
+        print()
+        print(time(),"Something went wrong while processing your request. This listing is incomplete",end="")
+        return 1
+
+    pprint_dirs(dirs)
+
+
+    return 0
+
+def pprint_dirs(dirs):
+    print()
+    print(time() + "Directory Listing:")
+    dirs.sort()
+    for dir in dirs:
+        print(dir.decode())
+
+def time():
+    time = datetime.now().strftime("%H:%M:%S")
+    return "[ " + time + " ]  "
+
 
 ### bibliography
  # https://docs.python.org/3.3/howto/sockets.html
