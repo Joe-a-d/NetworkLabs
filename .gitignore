@@ -1,3 +1,6 @@
 *.pdf
-/Final/testc.py 
+/Final/testc.py
 /Final/tests.py
+/Final/__pycache__
+/Final/*.zip
+/Final/Tex
