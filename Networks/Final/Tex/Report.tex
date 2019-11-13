@@ -1,0 +1,167 @@
+
+%% CLASS MANUAL FOUND IN http://blog.poormansmath.net/latex-class-for-lecture-notes/ %%
+%% CLASS AUTHOR Stefano Maggiolo %%
+\documentclass[english,course]{Notes}
+
+\title{Laboratory 3 Report}
+\subject{NOSE2}
+\author{Joao Almeida-Domingues 2334590 , LB05}
+\email{2334590D@student.gla.ac.uk}
+\speaker{Dr. Nikos Ntarmos }
+\date{01}{11}{2019}
+\dateend{01}{11}{2019}
+\place{University of Glasgow}
+
+ %%%%% GENERAL MATHEMATICAL NOTATION SHORTCUTS %%%%%
+ 
+\newcommand{\n}{\mathbb{N}}
+\newcommand{\z}{\mathbb{Z}}
+\newcommand{\q}{\mathbb{Q}}
+\newcommand{\cx}{\mathbb{C}}
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\field}{\mathbb{F}}
+\newcommand{\ita}[1]{\textit{#1}}
+\newcommand{\oneton}{\{1,2,3,...,n\}}
+\newcommand\ef{\ita{f} }
+
+\newcommand\inv[1]{#1^{-1}}
+
+\newcommand\en{\ita{n }}
+\renewcommand\qedsymbol{QED} %QED instead of square
+\newcommand\handleft{\HandCuffLeft}
+\newcommand\handright{\HandCuffRight}
+
+\setlength\parindent{0pt} %no indent
+ \usepackage{setspace}
+%MATRICES
+\usepackage[delims={[]}]{spalign}
+\let\mat=\spalignmat
+\let\amat=\spalignaugmat
+\let\vec=\spalignvector
+
+% row ops
+\newcommand\ro[2]{\xrightarrow[#2]{#1}}
+
+
+
+%%%%%%%%%%%%%%%%PACKAGES%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{lipsum}  
+
+\usepackage{amsmath,amsthm,amssymb,graphicx,mathtools,tikz,pgfplots} %maths
+\usepackage{hyperref,framed,color,fancybox,listings} [breaklines=true]%layout
+\usepackage[backend=biber, style=reading]{biblatex} %bibliography
+\bibliography{} %add bib file name
+
+\renewcommand{\abstractname}{\vspace{3\baselineskip}} %hack to remove abstract
+\usepackage{bbding} %dingbats  for signposting
+
+% framed :  \begin{shaded,frame,snugshade or leftbar} \definecolor{shadecolor}{rgb}{XYZ} to change color
+%fancybox: \shadowbox,ovalbox or doublebox
+%\extra for Extra content layout box
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%CLASS SHORTCUTS%%%%
+%\lecture{day}{month}{year} for margin note 
+%\begin{theorem} sdfsdf\end{theorem}  --> \theorem
+%\begin{proposition} dfsdfs\end{proposition} --> \prop
+%\begin{lemma} dsfsd \end{lemma} --> \lem
+%\begin{corollary} f ffew \end{corollary}
+%\begin{definition} fwewef w \end{definition} --> \defn
+%\begin{example} feww e\end{example} --> \ex
+%\begin{exercise} wefwe \end{exercise}
+%\begin{remark} wef we \end{remark} --> \rem
+%\begin{fact} wefe \end{fact}
+%\begin{problem} wef ew \end{problem}
+%\begin{conjecture} ewfew \end{conjecture}
+%\begin{claim} few w \end{claim}
+%\begin{notation} fewf \end{notation} --> \nota
+%\mymarginpar for scriptsize margin
+
+\doublespacing
+\begin{document}
+
+
+\newpage
+
+\section{Introduction}
+
+\par{This project involved the creation of a networked application, in particular a file transfer app. As per the spec, within the \verb!.zip! file you'll find 3 \verb!.py! files : \verb!server.py , client.py , methods.py!. The first two represent a client and a server, and the last includes abstractions for tasks which are common to both}
+
+\section{Application Protocol}
+
+\subsection{App Description}
+\subsubsection{Run App}
+\begin{itemize}
+	\item[] Initiate server : \verb! python server.py <portNumber>!
+	\item[] Initiate client : \verb!python client.py ``0.0.0.0'' <portNumber> <request>!
+
+\end{itemize}
+\subsubsection{Requests}
+
+\noindent \par{\verb!request! can be take any one of the following 3 parameters}
+\begin{itemize}
+	\item[] \verb!put <filename>! : corresponds to an upload request 
+
+	\item[] \verb!get <filename> !  : corresponds to a download request 
+	
+	\item[] \verb!list! : lists all files in server
+	
+\end{itemize}
+
+\subsubsection{Communication Protocol}
+
+\par{The communication between the client and sever follows the following general pattern}
+
+\par{Each request is assigned a 3char code when parsing the CLI arguments. A first stream is then sent to the server where the stream is split into code and message data. This allows for the server to know what helper method to call. The correct method is then called by the client to handle the request and server's response; closing the socket afterwards.  The server then calls the appropriate helper method to handle the request, sends a response, and creates a new socket which times out after 2min of inactivity }
+
+\subsubsection{Encodings}
+
+\verb! put : 1\%#! ;
+\verb!get : 2\%#! ;
+\verb!list : 3\%#!
+
+\subsubsection{Helper Methods}
+
+\par{Given that \verb!put , get! are symmetric in client-server communication, I have abstracted the act of sending and receiving data into 2 separate methods \verb!send_file! and \verb!receive_file!}
+
+\begin{itemize}
+	\item[] \verb!send_file! : takes a socket and a filename as its arguments , reads it and outputs the data via the socket after adding two delimiters \verb!##start##! \verb!\%\%size\%\%! which  are used by the receiver to indicate the start of the stream and size of the data respectively 
+	
+	\item[] \verb!receive_file! : takes a socket and a stream of data, the stream of data is parsed accordingly splitting the codes and the file data into separate variables. We use start to signal the start of the meaningful data, which covers against broken streams , and then we check at what stage of of receiving we are by comparing the size of the chunked data against the expected size file
+
+\end{itemize}
+
+\par{There is no particular reason behind the choice of delimiters. The choice to break the messages into an initial 100 byte stream initial buffer which will allow for large filenames and sizes to be sent at the initial contact. The choice of chunking the data has been justified above, but to emphasise this was due to the unreliable nature of streaming connections}
+\subsection{Put Request Example}
+\newpage
+\begin{lstlisting}
+SERVER: 
+	NEW SOCKET
+	LISTEN
+CLIENT:
+	NEW SOCKET
+	CONNECT
+SERVER:
+	ACCEPT
+CLIENT:
+	SEND1 : 
+		b'1\%<FILENAME>'
+	SEND2 : 
+		b'##start##<SIZE>\%\%size\%\%<DATA>'
+	CLOSE
+SERVER:
+	RECEIVE (100bytes) : 
+		buffer = b'1\%' ; filename = b'<FILENAME><DATA>'
+	RECEIVE2 (100bytes) : 
+		size = <SIZE> ; received = <DATA>
+	
+	[if <DATA>  < <SIZE> NEW RECEIVE (4096 bytes)>
+	
+	STATUS
+	NEW SOCKET
+	LISTEN
+\end{lstlisting}
+ 
+
+
+\end{document}
