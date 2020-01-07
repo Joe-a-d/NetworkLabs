@@ -1,6 +1,6 @@
 *.pdf
-/Final/testc.py
-/Final/tests.py
-/Final/__pycache__
-/Final/*.zip
-/Final/Tex
+Networks/Final/testc.py
+Networks/Final/tests.py
+Networks/Final/__pycache__
+Networks/Final/*.zip
+Networks/Final/Tex
